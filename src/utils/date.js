@@ -1,14 +1,21 @@
-export const timeAgo = (dateStr) => {
-  if (!dateStr) return '';
+export const timeAgo = (dateInput) => {
+  if (!dateInput) return '';
   
-  // Ensure the date string is treated as UTC if no timezone is provided
-  // Backend returns ISO format. If it doesn't have Z or +/-, we append Z.
-  const normalizedDateStr = dateStr.includes('Z') || dateStr.includes('+') 
-    ? dateStr 
-    : `${dateStr}Z`;
+  let past;
+  if (dateInput instanceof Date) {
+    past = dateInput;
+  } else if (typeof dateInput === 'string') {
+    // Ensure the date string is treated as UTC if no timezone is provided
+    // Backend returns ISO format. If it doesn't have Z or +/-, we append Z.
+    const normalizedDateStr = dateInput.includes('Z') || dateInput.includes('+') 
+      ? dateInput 
+      : `${dateInput}Z`;
+    past = new Date(normalizedDateStr);
+  } else {
+    return '';
+  }
     
   const now = new Date();
-  const past = new Date(normalizedDateStr);
   const diffMs = now - past;
   
   // Handle cases where the server time might be slightly ahead of local time due to clock drift

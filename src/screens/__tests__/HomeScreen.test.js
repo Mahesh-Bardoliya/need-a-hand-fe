@@ -102,11 +102,11 @@ describe('HomeScreen', () => {
   });
 
   it('applies filters on chip press', async () => {
-    const { getByText } = renderHomeScreen();
+    const { getByTestId } = renderHomeScreen();
     
     await waitFor(() => expect(helpRequestsAPI.paginate).toHaveBeenCalled());
 
-    const activeFilter = getByText('Active');
+    const activeFilter = getByTestId('filter-active');
     fireEvent.press(activeFilter);
     
     await waitFor(() => {

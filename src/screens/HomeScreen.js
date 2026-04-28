@@ -164,6 +164,7 @@ export default function HomeScreen({ navigation }) {
         ].map((f) => (
           <TouchableOpacity
             key={String(f.value)}
+            testID={`filter-${f.label.toLowerCase()}`}
             style={[styles.filterChip, filterActive === f.value && styles.filterChipActive]}
             onPress={() => handleFilterChange(f.value)}
           >
