@@ -9,10 +9,25 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000/api';
 const apiClient = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 // Global interceptor for unhandled network errors
 apiClient.interceptors.response.use(
@@ -59,14 +74,10 @@ export const usersAPI = {
 // ---------- Help Requests ----------
 export const helpRequestsAPI = {
   paginate: ({ page = 1, size = 20, search = null, query = {}, sorting = {} } = {}) => {
-    const formData = new FormData();
-    formData.append('query', JSON.stringify(query));
-    formData.append('sorting', JSON.stringify(sorting));
     let url = `/help_requests/paginate?page=${page}&size=${size}`;
-    if (search) url += `&search=${encodeURIComponent(search)}`;
-    return apiClient.post(url, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const payload = { query, sorting };
+    if (search) payload.search = search;
+    return apiClient.post(url, payload);
   },
   getByUUID: (uuid) => apiClient.get(`/help_requests/${uuid}`),
   create: (title, description, location) =>

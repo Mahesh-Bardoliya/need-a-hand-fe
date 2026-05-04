@@ -17,8 +17,8 @@ import { AuthContext } from '../context/AuthContext';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOW } from '../theme';
 import { timeAgo } from '../utils/date';
 
-const HelpRequestCard = ({ item, onPress }) => (
-  <TouchableOpacity style={styles.card} onPress={() => onPress(item)} activeOpacity={0.85}>
+const HelpRequestCard = React.memo(({ item, onNavigate }) => (
+  <TouchableOpacity style={styles.card} onPress={() => onNavigate(item.uuid)} activeOpacity={0.85}>
     <View style={styles.cardHeader}>
       <View style={[styles.statusBadge, item.is_active ? styles.activeBadge : styles.inactiveBadge]}>
         <Text style={[styles.statusText, item.is_active ? styles.activeText : styles.inactiveText]}>
@@ -49,7 +49,7 @@ const HelpRequestCard = ({ item, onPress }) => (
       <Text style={styles.requestorName}>{item.user?.name}</Text>
     </View>
   </TouchableOpacity>
-);
+));
 
 export default function HomeScreen({ navigation }) {
   const { user } = useContext(AuthContext);
@@ -127,6 +127,10 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  const handleNavigate = useCallback((uuid) => {
+    navigation.navigate('HelpRequestDetail', { uuid });
+  }, [navigation]);
+
   const renderHeader = () => (
     <View style={styles.listHeader}>
       <View style={styles.greeting}>
@@ -169,11 +173,11 @@ export default function HomeScreen({ navigation }) {
             onPress={() => handleFilterChange(f.value)}
           >
             {f.icon && (
-              <Feather 
-                name={f.icon} 
-                size={13} 
-                color={filterActive === f.value ? '#fff' : COLORS.textSecondary} 
-                style={{ marginRight: 4 }} 
+              <Feather
+                name={f.icon}
+                size={13}
+                color={filterActive === f.value ? '#fff' : COLORS.textSecondary}
+                style={{ marginRight: 4 }}
               />
             )}
             <Text style={[styles.filterChipText, filterActive === f.value && styles.filterChipTextActive]}>
@@ -194,8 +198,11 @@ export default function HomeScreen({ navigation }) {
         data={items}
         keyExtractor={(item) => item.uuid}
         renderItem={({ item }) =>
-          <HelpRequestCard item={item} onPress={(i) => navigation.navigate('HelpRequestDetail', { uuid: i.uuid })} />
+          <HelpRequestCard item={item} onNavigate={handleNavigate} />
         }
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={11}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
           !loading ? (
